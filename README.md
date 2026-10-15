@@ -1,13 +1,14 @@
 # macos-tweaks
 
 Small Ammonia tweaks that bring back behaviours macOS is missing.
+best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina) for the good old macos look. this runs on macos 27
 
 ## finderup
 
 Separate buttons for : Back, Forward and Up (Enclosing Folder), in two places:
 
 - **Finder toolbar** (`libfinderup.dylib`): three buttons offered in View > Customize Toolbar.
-- **Open/Save panels** (`libpanelnav.dylib`): replace the Back/Forward combo with 3 buttons.
+- **Open/Save panels** (`libpanelnav.dylib`): replacing the Back/Forward combo button.
 
 ![Finder toolbar](screenshots/finder_up.png)
 
