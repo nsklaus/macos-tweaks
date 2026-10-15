@@ -4,10 +4,14 @@ Small Ammonia tweaks that bring back behaviours macOS is missing.
 
 ## finderup
 
-Separate Back, Forward and Up (Enclosing Folder) buttons, in two places:
+Separate buttons for : Back, Forward and Up (Enclosing Folder), in two places:
 
 - **Finder toolbar** (`libfinderup.dylib`): three buttons offered in View > Customize Toolbar.
-- **Open/Save panels** (`libpanelnav.dylib`): replace the Back/Forward control of the panels used by sandboxed apps.
+- **Open/Save panels** (`libpanelnav.dylib`): replace the Back/Forward combo with 3 buttons.
+
+![Finder toolbar](screenshots/finder_up.png)
+
+![Open/Save panel](screenshots/panel_up.png)
 
 ## docklower
 
