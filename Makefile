@@ -31,7 +31,7 @@ $(BUILD)/libdocklower.dylib: dock_lower/docklower.m | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
 $(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m | $(BUILD)
-	$(CC) $(FLAGS) -framework AppKit -o $@ $<
+	$(CC) $(FLAGS) -o $@ $<
 
 install: all
 	sudo install -m 644 $(DYLIBS) $(WHITELISTS) $(TWEAKS_DIR)/

@@ -7,7 +7,7 @@
 //
 // Install: /var/ammonia/core/tweaks/libitermtweaks.dylib, whitelist "iTerm2".
 
-#import <AppKit/AppKit.h>
+#import <AppKit/AppKit.h>  // types only: this dylib does not link AppKit
 #import <objc/runtime.h>
 
 // Findings from the iTerm2 3.7.5 sources (sources/ContextMenu/iTermTextViewContextMenuHelper.m,
@@ -74,6 +74,8 @@ static void ITInstall(void) {
             return NSEdgeInsetsZero;
         return insets;
     }, &gOrigTabBarInsets);
+
+    NSLog(@"[iTermTweaks] installed");
 }
 
 __attribute__((constructor))
