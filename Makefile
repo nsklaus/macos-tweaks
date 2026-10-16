@@ -9,10 +9,12 @@ FLAGS      := -arch arm64 -arch arm64e -dynamiclib -fobjc-arc -O2 -Wall -framewo
 TWEAKS_DIR := /var/ammonia/core/tweaks
 BUILD      := build
 
-DYLIBS     := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib $(BUILD)/libdocklower.dylib
+DYLIBS     := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib $(BUILD)/libdocklower.dylib \
+              $(BUILD)/libitermtweaks.dylib
 WHITELISTS := finder_up/libfinderup.dylib.whitelist \
               finder_up/libpanelnav.dylib.whitelist \
-              dock_lower/libdocklower.dylib.whitelist
+              dock_lower/libdocklower.dylib.whitelist \
+              iterm_tweaks/libitermtweaks.dylib.whitelist
 
 all: $(DYLIBS)
 
@@ -28,10 +30,14 @@ $(BUILD)/libpanelnav.dylib: finder_up/PanelNav.m finder_up/FUShared.h | $(BUILD)
 $(BUILD)/libdocklower.dylib: dock_lower/docklower.m | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
+$(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m | $(BUILD)
+	$(CC) $(FLAGS) -framework AppKit -o $@ $<
+
 install: all
 	sudo install -m 644 $(DYLIBS) $(WHITELISTS) $(TWEAKS_DIR)/
 	killall Finder Dock || true
 	@echo "Open/Save panels pick up the change the next time a panel opens."
+	@echo "Restart iTerm2 for libitermtweaks."
 
 uninstall:
 	sudo rm -f $(addprefix $(TWEAKS_DIR)/,$(notdir $(DYLIBS) $(WHITELISTS)))
