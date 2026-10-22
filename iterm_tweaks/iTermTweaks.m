@@ -8,7 +8,7 @@
 // Install: /var/ammonia/core/tweaks/libitermtweaks.dylib, whitelist "iTerm.app/Contents/MacOS/iTerm2".
 
 #import <AppKit/AppKit.h>  // types only: this dylib does not link AppKit
-#import <objc/runtime.h>
+#import "../shared/Tweak.h"
 
 // Findings from the iTerm2 3.7.5 sources (sources/ContextMenu/iTermTextViewContextMenuHelper.m,
 // sources/TerminalView/PseudoTerminal.m):
@@ -21,18 +21,6 @@
 
 static IMP gOrigContextMenu = NULL;
 static IMP gOrigTabBarInsets = NULL;
-
-// Replace a method's implementation with a block, keeping the original in *orig.
-static BOOL ITHook(NSString *className, NSString *selector, id block, IMP *orig) {
-    Class cls = NSClassFromString(className);
-    Method m = cls ? class_getInstanceMethod(cls, NSSelectorFromString(selector)) : NULL;
-    if (!m) {
-        NSLog(@"[iTermTweaks] -[%@ %@] not found, skipped", className, selector);
-        return NO;
-    }
-    *orig = method_setImplementation(m, imp_implementationWithBlock(block));
-    return YES;
-}
 
 static BOOL ITKeepItem(NSMenuItem *item) {
     static NSSet<NSString *> *kept;
@@ -55,8 +43,9 @@ static void ITTidySeparators(NSMenu *menu) {
 }
 
 static void ITInstall(void) {
-    ITHook(@"iTermTextViewContextMenuHelper", @"contextMenuWithEvent:", ^NSMenu *(id self, NSEvent *event) {
-        NSMenu *menu = ((NSMenu *(*)(id, SEL, NSEvent *))gOrigContextMenu)(self, @selector(contextMenuWithEvent:), event);
+    SEL menuSel = @selector(contextMenuWithEvent:);
+    if (!TWHook(NSClassFromString(@"iTermTextViewContextMenuHelper"), menuSel, ^NSMenu *(id self, NSEvent *event) {
+        NSMenu *menu = ((NSMenu *(*)(id, SEL, NSEvent *))gOrigContextMenu)(self, menuSel, event);
         NSUInteger paste = [menu.itemArray indexOfObjectPassingTest:^BOOL(NSMenuItem *i, NSUInteger idx, BOOL *stop) {
             return i.action == @selector(paste:);
         }];
@@ -65,15 +54,18 @@ static void ITInstall(void) {
             if (!ITKeepItem(item)) [menu removeItem:item];
         ITTidySeparators(menu);
         return menu;
-    }, &gOrigContextMenu);
+    }, &gOrigContextMenu))
+        NSLog(@"[iTermTweaks] -[iTermTextViewContextMenuHelper contextMenuWithEvent:] not found, skipped");
 
-    ITHook(@"PseudoTerminal", @"tabBarInsets", ^NSEdgeInsets(id self) {
-        NSEdgeInsets insets = ((NSEdgeInsets (*)(id, SEL))gOrigTabBarInsets)(self, @selector(tabBarInsets));
+    SEL insetsSel = @selector(tabBarInsets);
+    if (!TWHook(NSClassFromString(@"PseudoTerminal"), insetsSel, ^NSEdgeInsets(id self) {
+        NSEdgeInsets insets = ((NSEdgeInsets (*)(id, SEL))gOrigTabBarInsets)(self, insetsSel);
         if (insets.left == 8 && insets.right == 8 &&
             [NSUserDefaults.standardUserDefaults boolForKey:@"UseSequoiaStyleTabs"])
             return NSEdgeInsetsZero;
         return insets;
-    }, &gOrigTabBarInsets);
+    }, &gOrigTabBarInsets))
+        NSLog(@"[iTermTweaks] -[PseudoTerminal tabBarInsets] not found, skipped");
 
     NSLog(@"[iTermTweaks] installed");
 }

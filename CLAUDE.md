@@ -47,8 +47,14 @@ A tweak takes effect when its target process starts: restart the app after insta
 - Build `arm64` + `arm64e`, link only Foundation (AppKit is looked up at runtime with
   `NSClassFromString`; `<AppKit/AppKit.h>` is imported for types only).
 - The constructor checks the bundle ID before doing anything (see Ammonia above).
-- Hook with `method_setImplementation` + `imp_implementationWithBlock`, keeping the original
-  IMP when it is called. If a class or method is missing, log and install nothing.
+- Hook with `TWHook(cls, sel, block, &orig)` from `shared/Tweak.h` (header only, compiled into
+  each dylib, so tweaks stay independent). It adds the method on `cls` when it is inherited,
+  so a superclass is never changed. For a class method, pass `object_getClass(cls)`.
+  If it returns NO (class or method missing), log and install nothing.
+- When the target classes may not be registered when the dylib loads, install through
+  `TWOnLaunch(install)`, which retries at NSApplicationWillFinishLaunching; `install` must
+  then guard itself with a `done` flag.
+- A dylib that includes `shared/Tweak.h` lists it among its Makefile prerequisites.
 - Log with `NSLog(@"[TweakName] ...")`.
 - At the top of each file, a "Findings from lldb" comment records the classes, selectors and
   measurements the hook relies on, so it can be re-checked after a macOS update.
@@ -61,7 +67,7 @@ A tweak takes effect when its target process starts: restart the app after insta
   for Finder's toolbar (hooks `TToolbarController`). `libpanelnav.dylib`
   (openAndSavePanelService): the same three buttons in Open/Save panels, replacing the
   Back/Forward segmented control, plus alignment fixes for the pop-ups next to them.
-  Shared code in `FUShared.h`.
+  The button table shared by both is in `FUShared.h`.
 - `dock_lower/` — `libdocklower.dylib` (Dock): lowers a window with `SLSOrderWindow`, on a
   distributed notification `org.nsklaus.docklower` sent by `docklower.lua` (Hammerspoon,
   middle-click on a title bar).
@@ -72,6 +78,9 @@ A tweak takes effect when its target process starts: restart the app after insta
   callers are the editor styler (`ICTTTextController`) and author highlights. The note model
   (`ICTTMergeableAttributedString`) stores no color, only `TTStyle`, for existing and newly
   typed text (checked in lldb): the color is applied on screen only, nothing reaches iCloud.
+  Also sets `bordered = YES` on the toolbar's `ICMMarkupToolbarItem` (plain NSToolbarItem,
+  unbordered by default), by hooking `toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:`
+  in `ICMMainWindowController` and `ICMSingleNoteWindowController` (note windows).
 
 ## Build and install
 
