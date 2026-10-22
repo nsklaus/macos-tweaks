@@ -33,6 +33,15 @@ back of the window stack, without activating any other window.
 - **Sequoia-style tabs fill the tab bar**: with "Use Sequoia-style tabs" on macOS 26+, iTerm2
   3.7.5 keeps the padding meant for its Tahoe tabs, leaving an empty strip under the tabs.
 
+## notestweaks
+
+`libnotestweaks.dylib`, loaded in Notes only:
+
+- **Black body text**: the note editor draws plain text in the system text color, opaque black
+  in Light mode and opaque white in Dark mode, like TextEdit, instead of Notes' own grey.
+  Text you colored yourself, links, the note list and its greyed previews are left alone.
+  Nothing is saved into your notes: the color is only applied on screen.
+
 ## Requirements
 
 - Apple Silicon Mac, SIP disabled, [Ammonia](https://github.com/CoreBedtime/ammonia) installed
@@ -45,7 +54,10 @@ back of the window stack, without activating any other window.
 make install
 ```
 
+Or one tweak at a time: `make install-finderup`, `make install-docklower`,
+`make install-itermtweaks`, `make install-notestweaks`.
+
 For docklower, also copy `dock_lower/docklower.lua` to `~/.hammerspoon/` and add
 `require("docklower")` to your `~/.hammerspoon/init.lua`.
 
-Uninstall with `make uninstall`.
+Uninstall with `make uninstall`, or `make uninstall-<tweak>` for one tweak.

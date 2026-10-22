@@ -1,0 +1,109 @@
+# macos-tweaks
+
+Personal Ammonia tweaks for macOS 27 "Golden Gate" on an M2 Pro.
+Repo: github.com/nsklaus/macos-tweaks, branch `master`.
+
+## Working with the user
+
+- Talk in French. Everything in the code (comments, log messages, identifiers) is in English.
+- One step per reply. Always give complete files, never a fragment to insert.
+- Discuss the approach and wait for approval before writing code (see ~/.claude/CLAUDE.md).
+- Inspect the target app before proposing anything: verify, don't guess.
+- Warn the user before attaching lldb to an app they are using: lldb pauses the process,
+  which looks like the app freezing.
+
+## Ammonia
+
+Ammonia 1.5 (github.com/CoreBedtime/ammonia) loads tweaks into processes. Requires SIP
+disabled and the boot-arg `-arm64e_preview_abi`. Installed in `/var/ammonia/core/`.
+
+How it picks tweaks (from `opener/opener.m`, tag 1.5): at process start, `libopener.dylib`
+goes through every file in `/var/ammonia/core/tweaks/` and `dlopen`s it if:
+- `<file>.whitelist` exists and one of its lines is a substring of the process's full
+  executable path (`strstr`), or
+- there is no whitelist, `<file>.blacklist` exists and none of its lines matches.
+- With neither file, the dylib is not loaded.
+
+Consequences:
+- A bare app name matches more than the app: `Dock` also matched `DockHelper` and
+  `com.apple.dock.extra` (both inside Dock.app), `Notes` matches Notes' Spotlight extension.
+  So whitelist lines are the end of the executable path (`Notes.app/Contents/MacOS/Notes`),
+  and every tweak's constructor still checks the bundle ID.
+- Never leave an empty line in a whitelist: it matches every process.
+- A tweak may export `void LoadFunction(void *interceptor)` to get Ammonia's Frida Gum
+  interceptor; ours don't use it.
+- Skipped processes log "Process … is not whitelisted for <dylib>." (info level).
+
+BackToCatalina (libBackToCatalina, blacklist; libBackToCatalinaDock, whitelist) is installed
+through Ammonia too. It restyles AppKit controls, so measure our UI against its rendering,
+not stock macOS.
+
+A tweak takes effect when its target process starts: restart the app after installing.
+
+## Conventions for a tweak
+
+- One folder per tweak, one `.m` per dylib, a `.whitelist` per dylib holding the end of the
+  target's executable path (check it with `ps -axo comm | grep -F -- "<line>"`: one match).
+- Build `arm64` + `arm64e`, link only Foundation (AppKit is looked up at runtime with
+  `NSClassFromString`; `<AppKit/AppKit.h>` is imported for types only).
+- The constructor checks the bundle ID before doing anything (see Ammonia above).
+- Hook with `method_setImplementation` + `imp_implementationWithBlock`, keeping the original
+  IMP when it is called. If a class or method is missing, log and install nothing.
+- Log with `NSLog(@"[TweakName] ...")`.
+- At the top of each file, a "Findings from lldb" comment records the classes, selectors and
+  measurements the hook relies on, so it can be re-checked after a macOS update.
+- Hook the single place that owns a behaviour, so every path benefits, rather than patching
+  each view.
+
+## Tweaks
+
+- `finder_up/` — `libfinderup.dylib` (Finder): Back, Forward and Up (Enclosing Folder) buttons
+  for Finder's toolbar (hooks `TToolbarController`). `libpanelnav.dylib`
+  (openAndSavePanelService): the same three buttons in Open/Save panels, replacing the
+  Back/Forward segmented control, plus alignment fixes for the pop-ups next to them.
+  Shared code in `FUShared.h`.
+- `dock_lower/` — `libdocklower.dylib` (Dock): lowers a window with `SLSOrderWindow`, on a
+  distributed notification `org.nsklaus.docklower` sent by `docklower.lua` (Hammerspoon,
+  middle-click on a title bar).
+- `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2 3.7.5): short terminal context menu;
+  Sequoia-style tabs fill the tab bar (`-[PseudoTerminal tabBarInsets]`).
+- `notes_tweaks/` — `libnotestweaks.dylib` (Notes): body text in the system `textColor`
+  instead of Notes' grey. Hooks `+[NSColor(IC) preferredDefaultFontColor]` (NotesUI), whose only
+  callers are the editor styler (`ICTTTextController`) and author highlights. The note model
+  (`ICTTMergeableAttributedString`) stores no color, only `TTStyle`, for existing and newly
+  typed text (checked in lldb): the color is applied on screen only, nothing reaches iCloud.
+
+## Build and install
+
+```
+make                      # build everything into build/
+make <tweak>              # build one: finderup docklower itermtweaks notestweaks
+make install              # install every tweak (sudo)
+make install-<tweak>      # install one
+make uninstall            # remove every tweak
+make uninstall-<tweak>    # remove one
+make clean
+```
+
+Each tweak restarts only its own process (Finder or Dock) or prints a reminder to restart the
+app (iTerm2, Notes). `sudo` needs the user's password: ask them to run `! make install-<tweak>`.
+A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELISTS` and
+`<tweak>_RESTART` variables, its build rule, and its name in `TWEAKS`; then a README section.
+
+## Logs
+
+- In zsh, `log` is a shell builtin: use `/usr/bin/log`.
+- `/usr/bin/log show --last 1h --info --predicate 'eventMessage CONTAINS "[NotesTweaks]"' --style compact`
+- AMFI logs "Unrecoverable CT signature issue" for every tweak (ad-hoc signed): harmless,
+  the dylibs load anyway.
+
+## Inspecting an app with lldb
+
+- `lldb -p $(pgrep -x App) --batch -s script.lldb`, with `expr -l objc -O -- ...` lines.
+- `expr -l objc -- @import Foundation` (and `ObjectiveC`) first, for runtime calls and blocks.
+- View tree: `[[[window contentView] superview] _subtreeDescription]`.
+- `_shortMethodDescription` is UIKit-only on macOS: use `class_copyMethodList` instead.
+- To see who calls a method, use a Python SB API script with an auto-continue breakpoint
+  that counts backtraces, then drive the app (e.g. AppleScript) while it runs.
+- Resolve a dynamic color under an appearance with `+[NSAppearance setCurrentAppearance:]`
+  then `colorUsingColorSpace:`.
