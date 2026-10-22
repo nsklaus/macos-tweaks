@@ -3,15 +3,6 @@
 Personal Ammonia tweaks for macOS 27 "Golden Gate" on an M2 Pro.
 Repo: github.com/nsklaus/macos-tweaks, branch `master`.
 
-## Working with the user
-
-- Talk in French. Everything in the code (comments, log messages, identifiers) is in English.
-- One step per reply. Always give complete files, never a fragment to insert.
-- Discuss the approach and wait for approval before writing code (see ~/.claude/CLAUDE.md).
-- Inspect the target app before proposing anything: verify, don't guess.
-- Warn the user before attaching lldb to an app they are using: lldb pauses the process,
-  which looks like the app freezing.
-
 ## Ammonia
 
 Ammonia 1.5 (github.com/CoreBedtime/ammonia) loads tweaks into processes. Requires SIP
@@ -42,6 +33,7 @@ A tweak takes effect when its target process starts: restart the app after insta
 
 ## Conventions for a tweak
 
+- Everything in the code (comments, log messages, identifiers) is in English.
 - One folder per tweak, one `.m` per dylib, a `.whitelist` per dylib holding the end of the
   target's executable path (check it with `ps -axo comm | grep -F -- "<line>"`: one match).
 - Build `arm64` + `arm64e`, link only Foundation (AppKit is looked up at runtime with
@@ -63,24 +55,13 @@ A tweak takes effect when its target process starts: restart the app after insta
 
 ## Tweaks
 
-- `finder_up/` — `libfinderup.dylib` (Finder): Back, Forward and Up (Enclosing Folder) buttons
-  for Finder's toolbar (hooks `TToolbarController`). `libpanelnav.dylib`
-  (openAndSavePanelService): the same three buttons in Open/Save panels, replacing the
-  Back/Forward segmented control, plus alignment fixes for the pop-ups next to them.
-  The button table shared by both is in `FUShared.h`.
-- `dock_lower/` — `libdocklower.dylib` (Dock): lowers a window with `SLSOrderWindow`, on a
-  distributed notification `org.nsklaus.docklower` sent by `docklower.lua` (Hammerspoon,
-  middle-click on a title bar).
-- `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2 3.7.5): short terminal context menu;
-  Sequoia-style tabs fill the tab bar (`-[PseudoTerminal tabBarInsets]`).
-- `notes_tweaks/` — `libnotestweaks.dylib` (Notes): body text in the system `textColor`
-  instead of Notes' grey. Hooks `+[NSColor(IC) preferredDefaultFontColor]` (NotesUI), whose only
-  callers are the editor styler (`ICTTTextController`) and author highlights. The note model
-  (`ICTTMergeableAttributedString`) stores no color, only `TTStyle`, for existing and newly
-  typed text (checked in lldb): the color is applied on screen only, nothing reaches iCloud.
-  Also sets `bordered = YES` on the toolbar's `ICMMarkupToolbarItem` (plain NSToolbarItem,
-  unbordered by default), by hooking `toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:`
-  in `ICMMainWindowController` and `ICMSingleNoteWindowController` (note windows).
+What each tweak does is in the README; how it does it, in the header of its `.m` file.
+
+- `finder_up/` — `libfinderup.dylib` (Finder) and `libpanelnav.dylib` (Open/Save panels):
+  Back, Forward and Up buttons. Button table shared by both in `FUShared.h`.
+- `dock_lower/` — `libdocklower.dylib` (Dock) + `docklower.lua` (Hammerspoon): lower a window.
+- `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2): short context menu, full-height tabs.
+- `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button.
 
 ## Build and install
 
@@ -112,7 +93,9 @@ A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELI
 - `expr -l objc -- @import Foundation` (and `ObjectiveC`) first, for runtime calls and blocks.
 - View tree: `[[[window contentView] superview] _subtreeDescription]`.
 - `_shortMethodDescription` is UIKit-only on macOS: use `class_copyMethodList` instead.
-- To see who calls a method, use a Python SB API script with an auto-continue breakpoint
-  that counts backtraces, then drive the app (e.g. AppleScript) while it runs.
+- To see who calls a method, a Python SB API script with an auto-continue breakpoint set
+  by name worked; breakpoints set by address (stripped or Swift code) never fired.
+- To check that a method builds or returns something, call it directly in lldb
+  (e.g. ask a toolbar delegate for an item): faster and more reliable than tracing.
 - Resolve a dynamic color under an appearance with `+[NSAppearance setCurrentAppearance:]`
   then `colorUsingColorSpace:`.
