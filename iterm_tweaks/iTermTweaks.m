@@ -5,7 +5,7 @@
 // 2. Sequoia-style tabs fill the tab bar: on macOS 26+ iTerm2 keeps the 8pt padding meant for its
 //    rounded Tahoe tabs even with "Use Sequoia-style tabs", leaving a strip under the tabs.
 //
-// Install: /var/ammonia/core/tweaks/libitermtweaks.dylib, whitelist "iTerm2".
+// Install: /var/ammonia/core/tweaks/libitermtweaks.dylib, whitelist "iTerm.app/Contents/MacOS/iTerm2".
 
 #import <AppKit/AppKit.h>  // types only: this dylib does not link AppKit
 #import <objc/runtime.h>

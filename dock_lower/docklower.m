@@ -1,6 +1,9 @@
-// docklower - Ammonia tweak, active only inside the Dock (com.apple.dock)
-// Receives a window number through a distributed notification and moves
-// that window to the back of its level, like yabai's --lower.
+// DockLower — Ammonia tweak: a real "lower window", run inside the Dock, the only process
+// allowed to reorder other apps' windows. Receives a window number through a distributed
+// notification and moves that window to the back of its level, like yabai's --lower.
+// The notification is sent by docklower.lua (Hammerspoon) on a middle-click in a title bar.
+//
+// Install: /var/ammonia/core/tweaks/libdocklower.dylib, whitelist "Dock.app/Contents/MacOS/Dock".
 
 #import <Foundation/Foundation.h>
 #include <dlfcn.h>
@@ -20,7 +23,7 @@ static SLSOrderWindow_t      pOrderWindow;
     if (wid == 0) return;
     // mode -1 = below; relative window 0 = below everything in its level
     int32_t err = pOrderWindow(pMainConnectionID(), wid, -1, 0);
-    if (err) NSLog(@"docklower: SLSOrderWindow(%u) error %d", wid, err);
+    if (err) NSLog(@"[DockLower] SLSOrderWindow(%u) error %d", wid, err);
 }
 @end
 
@@ -32,7 +35,7 @@ static void docklower_init(void) {
     pMainConnectionID = (SLSMainConnectionID_t)dlsym(RTLD_DEFAULT, "SLSMainConnectionID");
     pOrderWindow      = (SLSOrderWindow_t)dlsym(RTLD_DEFAULT, "SLSOrderWindow");
     if (!pMainConnectionID || !pOrderWindow) {
-        NSLog(@"docklower: SkyLight functions not found");
+        NSLog(@"[DockLower] SkyLight functions not found, not installing");
         return;
     }
     static DLObserver *observer;
@@ -45,5 +48,5 @@ static void docklower_init(void) {
                name:@"org.nsklaus.docklower"
              object:nil
  suspensionBehavior:NSNotificationSuspensionBehaviorDeliverImmediately];
-    NSLog(@"docklower: loaded");
+    NSLog(@"[DockLower] installed");
 }

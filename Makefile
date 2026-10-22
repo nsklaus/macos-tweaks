@@ -1,22 +1,38 @@
 # macos-tweaks - build and install the Ammonia tweaks
-#   make            build everything into build/
-#   make install    copy dylibs and whitelists, restart Finder and Dock
-#   make uninstall  remove them
-#   make clean      remove build/
+#   make                     build everything into build/
+#   make <tweak>             build one tweak
+#   make install             install every tweak
+#   make install-<tweak>     install one tweak
+#   make uninstall           remove every tweak
+#   make uninstall-<tweak>   remove one tweak
+#   make clean               remove build/
+# Tweaks: finderup docklower itermtweaks notestweaks
 
 CC         := clang
 FLAGS      := -arch arm64 -arch arm64e -dynamiclib -fobjc-arc -O2 -Wall -framework Foundation
 TWEAKS_DIR := /var/ammonia/core/tweaks
 BUILD      := build
 
-DYLIBS     := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib $(BUILD)/libdocklower.dylib \
-              $(BUILD)/libitermtweaks.dylib
-WHITELISTS := finder_up/libfinderup.dylib.whitelist \
-              finder_up/libpanelnav.dylib.whitelist \
-              dock_lower/libdocklower.dylib.whitelist \
-              iterm_tweaks/libitermtweaks.dylib.whitelist
+TWEAKS     := finderup docklower itermtweaks notestweaks
 
-all: $(DYLIBS)
+# Per tweak: its dylibs, their whitelists, and what to run after (un)installing it.
+finderup_DYLIBS        := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib
+finderup_WHITELISTS    := finder_up/libfinderup.dylib.whitelist finder_up/libpanelnav.dylib.whitelist
+finderup_RESTART       := killall Finder || true; echo "Open/Save panels pick up the change the next time a panel opens."
+
+docklower_DYLIBS       := $(BUILD)/libdocklower.dylib
+docklower_WHITELISTS   := dock_lower/libdocklower.dylib.whitelist
+docklower_RESTART      := killall Dock || true
+
+itermtweaks_DYLIBS     := $(BUILD)/libitermtweaks.dylib
+itermtweaks_WHITELISTS := iterm_tweaks/libitermtweaks.dylib.whitelist
+itermtweaks_RESTART    := echo "Restart iTerm2 for libitermtweaks."
+
+notestweaks_DYLIBS     := $(BUILD)/libnotestweaks.dylib
+notestweaks_WHITELISTS := notes_tweaks/libnotestweaks.dylib.whitelist
+notestweaks_RESTART    := echo "Restart Notes for libnotestweaks."
+
+all: $(TWEAKS)
 
 $(BUILD):
 	mkdir -p $@
@@ -33,15 +49,28 @@ $(BUILD)/libdocklower.dylib: dock_lower/docklower.m | $(BUILD)
 $(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
-install: all
-	sudo install -m 644 $(DYLIBS) $(WHITELISTS) $(TWEAKS_DIR)/
-	killall Finder Dock || true
-	@echo "Open/Save panels pick up the change the next time a panel opens."
-	@echo "Restart iTerm2 for libitermtweaks."
+$(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m | $(BUILD)
+	$(CC) $(FLAGS) -o $@ $<
 
-uninstall:
-	sudo rm -f $(addprefix $(TWEAKS_DIR)/,$(notdir $(DYLIBS) $(WHITELISTS)))
-	killall Finder Dock || true
+# <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
+define TWEAK_RULES
+$(1): $$($(1)_DYLIBS)
+
+install-$(1): $$($(1)_DYLIBS)
+	sudo install -m 644 $$($(1)_DYLIBS) $$($(1)_WHITELISTS) $$(TWEAKS_DIR)/
+	@$$($(1)_RESTART)
+
+uninstall-$(1):
+	sudo rm -f $$(addprefix $$(TWEAKS_DIR)/,$$(notdir $$($(1)_DYLIBS) $$($(1)_WHITELISTS)))
+	@$$($(1)_RESTART)
+
+.PHONY: $(1) install-$(1) uninstall-$(1)
+endef
+$(foreach t,$(TWEAKS),$(eval $(call TWEAK_RULES,$(t))))
+
+install: $(addprefix install-,$(TWEAKS))
+
+uninstall: $(addprefix uninstall-,$(TWEAKS))
 
 clean:
 	rm -rf $(BUILD)

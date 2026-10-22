@@ -1,7 +1,7 @@
 // FinderUp — Ammonia tweak: separate Back, Forward and Up (Enclosing Folder) buttons
 // in Finder's toolbar, built like Finder's own buttons.
 //
-// Install: /var/ammonia/core/tweaks/libfinderup.dylib, whitelist "Finder".
+// Install: /var/ammonia/core/tweaks/libfinderup.dylib, whitelist "Finder.app/Contents/MacOS/Finder".
 //
 // Findings from lldb (macOS 27, Finder):
 //   toolbar class   : TToolbar
