@@ -61,7 +61,8 @@ What each tweak does is in the README; how it does it, in the header of its `.m`
   Back, Forward and Up buttons. Button table shared by both in `FUShared.h`.
 - `dock_lower/` — `libdocklower.dylib` (Dock) + `docklower.lua` (Hammerspoon): lower a window.
 - `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2): short context menu, full-height tabs.
-- `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button.
+- `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button,
+  Always Bold toolbar toggle.
 
 ## Build and install
 
