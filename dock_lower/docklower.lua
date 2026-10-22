@@ -1,6 +1,6 @@
 --[[
 
-HAMERSPOON init.lua for docklower
+HAMMERSPOON init.lua for docklower
 
 this creates a real "lower window" for macos, like on linux.
 MMB click on a window titlebar sends the window to the back of the stack.
