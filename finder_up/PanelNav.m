@@ -123,7 +123,7 @@ static void FUHookInsets(NSString *className, IMP *orig, CGFloat shiftDown) {
     Class cls = NSClassFromString(className);
     if (!cls) return;
     SEL sel = @selector(alignmentRectInsets);
-    FUHook(cls, sel, ^NSEdgeInsets(NSControl *self) {
+    TWHook(cls, sel, ^NSEdgeInsets(NSControl *self) {
         NSEdgeInsets in  = ((NSEdgeInsets (*)(id, SEL))*orig)(self, sel);
         NSEdgeInsets seg = FUSegmentInsets(self.controlSize);
         in.top    = seg.top    - shiftDown;
@@ -143,13 +143,13 @@ static void FUPanelInstall(void) {
     SEL enabledSel = @selector(setEnabled:forSegment:);
 
     // When the arrows land in a panel window, swap in our three controls.
-    FUHook(cls, moveSel, ^(NSSegmentedControl *self) {
+    TWHook(cls, moveSel, ^(NSSegmentedControl *self) {
         ((void (*)(id, SEL))gOrigMoveToWindow)(self, moveSel);
         FUPanelSetup(self);
     }, &gOrigMoveToWindow);
 
     // When the panel greys or enables an arrow, follow it.
-    FUHook(cls, enabledSel, ^(NSSegmentedControl *self, BOOL enabled, NSInteger segment) {
+    TWHook(cls, enabledSel, ^(NSSegmentedControl *self, BOOL enabled, NSInteger segment) {
         ((void (*)(id, SEL, BOOL, NSInteger))gOrigSetEnabled)(self, enabledSel, enabled, segment);
         FUPanelSync(self);
     }, &gOrigSetEnabled);
@@ -172,6 +172,6 @@ static void FUInit(void) {
     @autoreleasepool {
         if ([[[NSBundle mainBundle] bundleIdentifier]
                 isEqualToString:@"com.apple.appkit.xpc.openAndSavePanelService"])
-            FUOnLaunch(FUPanelInstall);
+            TWOnLaunch(FUPanelInstall);
     }
 }

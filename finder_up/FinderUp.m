@@ -95,7 +95,7 @@ static void FUInstall(void) {
     done = YES;
 
     // 1. Offer our buttons in Customize Toolbar.
-    FUHook(cls, allowedSel, ^NSArray *(id self, NSToolbar *toolbar) {
+    TWHook(cls, allowedSel, ^NSArray *(id self, NSToolbar *toolbar) {
         NSArray *ids = ((NSArray *(*)(id, SEL, NSToolbar *))gOrigAllowed)(self, allowedSel, toolbar);
         if (ids == nil) return ids;
         NSMutableArray *all = [ids mutableCopy];
@@ -105,7 +105,7 @@ static void FUInstall(void) {
     }, &gOrigAllowed);
 
     // 2. Build our items when asked for them; leave every other item to Finder.
-    FUHook(cls, itemSel, ^NSToolbarItem *(id self, NSToolbar *toolbar, NSString *ident, id plist, BOOL insert) {
+    TWHook(cls, itemSel, ^NSToolbarItem *(id self, NSToolbar *toolbar, NSString *ident, id plist, BOOL insert) {
         const FUButton *b = FUFind(ident);
         if (b) return FUMakeItem(b);
         return ((NSToolbarItem *(*)(id, SEL, NSToolbar *, NSString *, id, BOOL))gOrigItem)
@@ -119,6 +119,6 @@ __attribute__((constructor))
 static void FUInit(void) {
     @autoreleasepool {
         if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.finder"])
-            FUOnLaunch(FUInstall);
+            TWOnLaunch(FUInstall);
     }
 }

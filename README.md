@@ -41,6 +41,9 @@ back of the window stack, without activating any other window.
   in Light mode and opaque white in Dark mode, like TextEdit, instead of Notes' own grey.
   Text you colored yourself, links, the note list and its greyed previews are left alone.
   Nothing is saved into your notes: the color is only applied on screen.
+- **Bordered Markup button**: the toolbar's Markup button is drawn as a button like the others,
+  in the main window and in note windows, instead of a bare symbol (Notes leaves it unbordered,
+  which shows with BackToCatalina).
 
 ## Requirements
 

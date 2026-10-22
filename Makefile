@@ -37,19 +37,19 @@ all: $(TWEAKS)
 $(BUILD):
 	mkdir -p $@
 
-$(BUILD)/libfinderup.dylib: finder_up/FinderUp.m finder_up/FUShared.h | $(BUILD)
+$(BUILD)/libfinderup.dylib: finder_up/FinderUp.m finder_up/FUShared.h shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
-$(BUILD)/libpanelnav.dylib: finder_up/PanelNav.m finder_up/FUShared.h | $(BUILD)
+$(BUILD)/libpanelnav.dylib: finder_up/PanelNav.m finder_up/FUShared.h shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
 $(BUILD)/libdocklower.dylib: dock_lower/docklower.m | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
-$(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m | $(BUILD)
+$(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
-$(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m | $(BUILD)
+$(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
