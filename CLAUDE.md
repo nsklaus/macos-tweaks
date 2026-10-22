@@ -36,9 +36,12 @@ A tweak takes effect when its target process starts: restart the app after insta
 - Everything in the code (comments, log messages, identifiers) is in English.
 - One folder per tweak, one `.m` per dylib, a `.whitelist` per dylib holding the end of the
   target's executable path (check it with `ps -axo comm | grep -F -- "<line>"`: one match).
+  A tweak meant for every app (boldtext) uses `.app/Contents/MacOS/`, which matches all apps
+  and no daemon or XPC service.
 - Build `arm64` + `arm64e`, link only Foundation (AppKit is looked up at runtime with
   `NSClassFromString`; `<AppKit/AppKit.h>` is imported for types only).
-- The constructor checks the bundle ID before doing anything (see Ammonia above).
+- The constructor checks the bundle ID before doing anything (see Ammonia above); a tweak
+  meant for every app checks that it is an AppKit app (`NSApplication` exists).
 - Hook with `TWHook(cls, sel, block, &orig)` from `shared/Tweak.h` (header only, compiled into
   each dylib, so tweaks stay independent). It adds the method on `cls` when it is inherited,
   so a superclass is never changed. For a class method, pass `object_getClass(cls)`.
@@ -63,12 +66,14 @@ What each tweak does is in the README; how it does it, in the header of its `.m`
 - `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2): short context menu, full-height tabs.
 - `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button,
   Always Bold toolbar toggle.
+- `bold_text/` — `libboldtext.dylib` (every app, MenuBarAgent, Open/Save panel service):
+  semibold system fonts; off with `defaults write -g TweaksBoldText -bool NO`.
 
 ## Build and install
 
 ```
 make                      # build everything into build/
-make <tweak>              # build one: finderup docklower itermtweaks notestweaks
+make <tweak>              # build one: finderup docklower itermtweaks notestweaks boldtext
 make install              # install every tweak (sudo)
 make install-<tweak>      # install one
 make uninstall            # remove every tweak
@@ -76,10 +81,20 @@ make uninstall-<tweak>    # remove one
 make clean
 ```
 
-Each tweak restarts only its own process (Finder or Dock) or prints a reminder to restart the
-app (iTerm2, Notes). `sudo` needs the user's password: ask them to run `! make install-<tweak>`.
+Each tweak restarts only its own process (Finder, Dock, MenuBarAgent) or prints a reminder to
+restart the app (iTerm2, Notes, every app for boldtext). `sudo` needs the user's password:
+ask them to run `! make install-<tweak>`.
 A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELISTS` and
 `<tweak>_RESTART` variables, its build rule, and its name in `TWEAKS`; then a README section.
+
+Pitfalls when reloading a tweak:
+- Never overwrite a loaded dylib in place (`cp`): the kernel keeps its old code signature,
+  and the next process loading it is killed ("Code Signature Invalid", "Invalid Page").
+  `install` writes a new file and renames it; by hand, `rm` first.
+- Open/Save panel services (`com.apple.appkit.xpc.openAndSavePanelService`) stay alive
+  between panels and ignore SIGTERM: with no panel open, `killall -9` them.
+- `killall MenuBarAgent` leaves it stopped (launchd starts it only on demand): restart it with
+  `launchctl kickstart -k gui/$(id -u)/com.apple.MenuBarAgent`.
 
 ## Logs
 

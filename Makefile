@@ -6,19 +6,19 @@
 #   make uninstall           remove every tweak
 #   make uninstall-<tweak>   remove one tweak
 #   make clean               remove build/
-# Tweaks: finderup docklower itermtweaks notestweaks
+# Tweaks: finderup docklower itermtweaks notestweaks boldtext
 
 CC         := clang
 FLAGS      := -arch arm64 -arch arm64e -dynamiclib -fobjc-arc -O2 -Wall -framework Foundation
 TWEAKS_DIR := /var/ammonia/core/tweaks
 BUILD      := build
 
-TWEAKS     := finderup docklower itermtweaks notestweaks
+TWEAKS     := finderup docklower itermtweaks notestweaks boldtext
 
 # Per tweak: its dylibs, their whitelists, and what to run after (un)installing it.
 finderup_DYLIBS        := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib
 finderup_WHITELISTS    := finder_up/libfinderup.dylib.whitelist finder_up/libpanelnav.dylib.whitelist
-finderup_RESTART       := killall Finder || true; echo "Open/Save panels pick up the change the next time a panel opens."
+finderup_RESTART       := killall Finder || true; echo "Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
 
 docklower_DYLIBS       := $(BUILD)/libdocklower.dylib
 docklower_WHITELISTS   := dock_lower/libdocklower.dylib.whitelist
@@ -31,6 +31,10 @@ itermtweaks_RESTART    := echo "Restart iTerm2 for libitermtweaks."
 notestweaks_DYLIBS     := $(BUILD)/libnotestweaks.dylib
 notestweaks_WHITELISTS := notes_tweaks/libnotestweaks.dylib.whitelist
 notestweaks_RESTART    := echo "Restart Notes for libnotestweaks."
+
+boldtext_DYLIBS        := $(BUILD)/libboldtext.dylib
+boldtext_WHITELISTS    := bold_text/libboldtext.dylib.whitelist
+boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
 
 all: $(TWEAKS)
 
@@ -50,6 +54,9 @@ $(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m shared/Tweak.h | $(BUI
 	$(CC) $(FLAGS) -o $@ $<
 
 $(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m shared/Tweak.h | $(BUILD)
+	$(CC) $(FLAGS) -o $@ $<
+
+$(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.

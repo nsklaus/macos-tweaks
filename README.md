@@ -50,6 +50,18 @@ back of the window stack, without activating any other window.
   when Notes restarts, even if you remove the button from the toolbar. Bolding or unbolding a
   selection still works as usual.
 
+## boldtext
+
+`libboldtext.dylib`, loaded in every app: bold text everywhere, like iOS's Bold Text option.
+The system font turns semibold in windows, menus, the menu bar, Finder's file lists and
+Open/Save panels. Fonts you chose yourself (in TextEdit, an editor...) are left alone.
+
+- Turn it off with `defaults write -g TweaksBoldText -bool NO` (`YES` to turn it back on),
+  then relaunch the apps.
+- Some buttons and labels stay regular (those stored in an app's interface files, like the
+  Open/Save panel's Cancel and Open), and so does the Finder sidebar, which BackToCatalina
+  keeps regular.
+
 ## Requirements
 
 - Apple Silicon Mac, SIP disabled, [Ammonia](https://github.com/CoreBedtime/ammonia) installed
@@ -63,7 +75,7 @@ make install
 ```
 
 Or one tweak at a time: `make install-finderup`, `make install-docklower`,
-`make install-itermtweaks`, `make install-notestweaks`.
+`make install-itermtweaks`, `make install-notestweaks`, `make install-boldtext`.
 
 For docklower, also copy `dock_lower/docklower.lua` to `~/.hammerspoon/` and add
 `require("docklower")` to your `~/.hammerspoon/init.lua`.
