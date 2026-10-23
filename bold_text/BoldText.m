@@ -28,6 +28,13 @@
 //     (Open/Save panel's Open, Cancel, Show Options). Left as is: an init hook in every app
 //     is too risky for a few buttons
 //   semibold and bold fonts have the bold symbolic trait (2), regular ones don't
+//   rule: hand back the same kind of font the system would have. Apps rebuild fonts by name
+//     (iTerm2's window subtitle: +fontWithName:font.fontName size:, which crashed on nil):
+//     - the size-only fonts are named .AppleSystemUIFont* and +fontWithName: finds them; a
+//       semibold made from their descriptor is .SFNS-Semibold, which it doesn't (nil). So
+//       they are replaced by the original +systemFontOfSize:weight: (.AppleSystemUIFontDemi)
+//     - text style fonts are .SFNS-* already without the tweak (+fontWithName: returns nil
+//       for them too), so their semibold variant made from the descriptor is no worse
 //   menu bar titles are drawn by MenuBarAgent (com.apple.MenuBarAgent), an AppKit app; the
 //     menu bar window itself belongs to WindowServer
 //   tested with a throwaway dylib in TextEdit and MenuBarAgent: windows, dropdown menus and
@@ -63,7 +70,14 @@ static NSFontDescriptor *BTSemibold(NSFontDescriptor *d) {
         @{@"NSCTFontTraitsAttribute": @{@"NSCTFontWeightTrait": @(kBTMinWeight)}}];
 }
 
-// The same font, at least semibold: left alone if already semibold or bolder, or if no
+// The system font at least semibold, as the system builds it (a name +fontWithName: finds).
+static NSFont *BTBolderSystemFont(NSFont *font) {
+    if (!font || BTIsBold(font) || !gOrigSizeWeight) return font;
+    return ((NSFont *(*)(id, SEL, CGFloat, CGFloat))gOrigSizeWeight)
+        (NSClassFromString(@"NSFont"), @selector(systemFontOfSize:weight:), font.pointSize, kBTMinWeight) ?: font;
+}
+
+// A text style font, at least semibold: left alone if already semibold or bolder, or if no
 // such weight exists.
 static NSFont *BTBolder(NSFont *font) {
     if (!font || BTIsBold(font)) return font;
@@ -78,7 +92,7 @@ static void BTInstall(void) {
         SEL sel = NSSelectorFromString(kBTSizeSelectors[i]);
         IMP *orig = &gOrigSize[i];
         if (!TWHook(meta, sel, ^NSFont *(id self, CGFloat size) {
-            return BTBolder(((NSFont *(*)(id, SEL, CGFloat))*orig)(self, sel, size));
+            return BTBolderSystemFont(((NSFont *(*)(id, SEL, CGFloat))*orig)(self, sel, size));
         }, orig))
             NSLog(@"[BoldText] +[NSFont %@] not found, skipped", kBTSizeSelectors[i]);
     }

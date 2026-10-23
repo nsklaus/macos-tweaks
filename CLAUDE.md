@@ -55,6 +55,13 @@ A tweak takes effect when its target process starts: restart the app after insta
   measurements the hook relies on, so it can be re-checked after a macOS update.
 - Hook the single place that owns a behaviour, so every path benefits, rather than patching
   each view.
+- A hook that changes what the system returns must return the same kind of object the system
+  would have: apps rely on properties of stock objects that we cannot list. Change the request
+  (an argument passed to the original) rather than altering its result, and check the result
+  against the stock one. Example: a semibold system font derived from its descriptor is named
+  `.SFNS-Semibold`, which `+fontWithName:` cannot find, while the stock `.AppleSystemUIFont`
+  is found; iTerm2 rebuilds its title font by name and crashed on the nil. Asking the original
+  `+systemFontOfSize:weight:` gives `.AppleSystemUIFontDemi`, found by name like the stock one.
 
 ## Tweaks
 
