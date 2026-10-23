@@ -34,7 +34,7 @@ notestweaks_RESTART    := echo "Restart Notes for libnotestweaks."
 
 boldtext_DYLIBS        := $(BUILD)/libboldtext.dylib
 boldtext_WHITELISTS    := bold_text/libboldtext.dylib.whitelist
-boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
+boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; killall Dock "Siri AI" || true; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
 
 all: $(TWEAKS)
 
@@ -56,8 +56,8 @@ $(BUILD)/libitermtweaks.dylib: iterm_tweaks/iTermTweaks.m shared/Tweak.h | $(BUI
 $(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m shared/Tweak.h | $(BUILD)
 	$(CC) $(FLAGS) -o $@ $<
 
-$(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/Tweak.h | $(BUILD)
-	$(CC) $(FLAGS) -o $@ $<
+$(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/dobby/dobby.h shared/dobby/libdobby.a | $(BUILD)
+	$(CC) $(FLAGS) -framework CoreText -o $@ $< shared/dobby/libdobby.a -lc++
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
 define TWEAK_RULES

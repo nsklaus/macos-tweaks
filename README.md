@@ -52,21 +52,22 @@ back of the window stack, without activating any other window.
 
 ## boldtext
 
-`libboldtext.dylib`, loaded in every app: bold text everywhere, like iOS's Bold Text option.
-The system font turns semibold in windows, menus, the menu bar, Finder's file lists and
-Open/Save panels. Fonts you chose yourself (in TextEdit, an editor...) are left alone.
+`libboldtext.dylib`: bold text everywhere, like iOS's Bold Text option. The system font turns
+semibold in every app (AppKit and SwiftUI), the menu bar, the Dock, Spotlight, System Settings
+and Open/Save panels. Text that was already bold stays bold, and fonts an app picks by name
+(documents, the terminal's font, symbol fonts) are left alone.
 
 - Turn it off with `defaults write -g TweaksBoldText -bool NO` (`YES` to turn it back on),
   then relaunch the apps.
-- Some buttons and labels stay regular (those stored in an app's interface files, like the
-  Open/Save panel's Cancel and Open), and so does the Finder sidebar, which BackToCatalina
-  keeps regular.
+- The Finder sidebar stays regular: BackToCatalina keeps it so.
+- Hooks CoreText with [Dobby](https://github.com/jmpews/Dobby) (Apache-2.0), in `shared/dobby/`.
 
 ## Requirements
 
 - Apple Silicon Mac, SIP disabled, [Ammonia](https://github.com/CoreBedtime/ammonia) installed
 - Xcode Command Line Tools (`xcode-select --install`)
 - [Hammerspoon](https://www.hammerspoon.org) for docklower
+- cmake and ninja, only to rebuild Dobby (`shared/dobby/rebuild-dobby.sh`)
 
 ## Install
 
