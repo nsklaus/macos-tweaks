@@ -85,12 +85,16 @@ What each tweak does is in the README; how it does it, in the header of its `.m`
 - `bold_text/` — `libboldtext.dylib` (every app, Dock, MenuBarAgent, Spotlight = Siri AI.app,
   System Settings panes, Open/Save panel service): semibold system fonts through three CoreText
   hooks (Dobby); off with `defaults write -g TweaksBoldText -bool NO`.
+- `app_toggle/` — `libapptoggle.dylib` (every app): Dock click shows/hides the app, selecting
+  an app restores its windows when all are minimized; off with
+  `defaults write -g TweaksAppToggle -bool NO`.
 
 ## Build and install
 
 ```
 make                      # build everything into build/
 make <tweak>              # build one: finderup docklower itermtweaks notestweaks boldtext
+                          #   apptoggle
 make install              # install every tweak (sudo)
 make install-<tweak>      # install one
 make uninstall            # remove every tweak
@@ -99,8 +103,8 @@ make clean
 ```
 
 Each tweak restarts only its own processes (Finder, Dock, MenuBarAgent, Siri AI) or prints a
-reminder to restart the app (iTerm2, Notes, every app for boldtext). `sudo` needs the user's
-password: ask them to run `! make install-<tweak>`.
+reminder to restart the app (iTerm2, Notes, every app for boldtext and apptoggle). `sudo`
+needs the user's password: ask them to run `! make install-<tweak>`.
 A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELISTS` and
 `<tweak>_RESTART` variables, its build rule, and its name in `TWEAKS`; then a README section.
 
