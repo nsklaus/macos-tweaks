@@ -82,9 +82,10 @@ What each tweak does is in the README; how it does it, in the header of its `.m`
 - `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2): short context menu, full-height tabs.
 - `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button,
   Always Bold toolbar toggle.
-- `bold_text/` — `libboldtext.dylib` (every app, Dock, MenuBarAgent, Spotlight = Siri AI.app,
-  System Settings panes, Open/Save panel service): semibold system fonts through three CoreText
-  hooks (Dobby); off with `defaults write -g TweaksBoldText -bool NO`.
+- `bold_text/` — `libboldtext.dylib` (every app, Dock, MenuBarAgent, ControlCenter = menu bar
+  clock and Sound/Bluetooth/network menus, Spotlight = Siri AI.app, System Settings panes,
+  Open/Save panel service): semibold system fonts through three CoreText hooks (Dobby); off
+  with `defaults write -g TweaksBoldText -bool NO`.
 - `app_toggle/` — `libapptoggle.dylib` (every app): Dock click shows/hides the app, selecting
   an app restores its windows when all are minimized; off with
   `defaults write -g TweaksAppToggle -bool NO`.
