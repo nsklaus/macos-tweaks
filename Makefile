@@ -6,14 +6,14 @@
 #   make uninstall           remove every tweak
 #   make uninstall-<tweak>   remove one tweak
 #   make clean               remove build/
-# Tweaks: finderup docklower itermtweaks notestweaks boldtext
+# Tweaks: finderup docklower itermtweaks notestweaks boldtext apptoggle
 
 CC         := clang
 FLAGS      := -arch arm64 -arch arm64e -dynamiclib -fobjc-arc -O2 -Wall -framework Foundation
 TWEAKS_DIR := /var/ammonia/core/tweaks
 BUILD      := build
 
-TWEAKS     := finderup docklower itermtweaks notestweaks boldtext
+TWEAKS     := finderup docklower itermtweaks notestweaks boldtext apptoggle
 
 # Per tweak: its dylibs, their whitelists, and what to run after (un)installing it.
 finderup_DYLIBS        := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib
@@ -35,6 +35,10 @@ notestweaks_RESTART    := echo "Restart Notes for libnotestweaks."
 boldtext_DYLIBS        := $(BUILD)/libboldtext.dylib
 boldtext_WHITELISTS    := bold_text/libboldtext.dylib.whitelist
 boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; killall Dock "Siri AI" || true; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
+
+apptoggle_DYLIBS       := $(BUILD)/libapptoggle.dylib
+apptoggle_WHITELISTS   := app_toggle/libapptoggle.dylib.whitelist
+apptoggle_RESTART      := echo "Relaunch apps (or log out and in) for libapptoggle."
 
 all: $(TWEAKS)
 
@@ -58,6 +62,9 @@ $(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m shared/Tweak.h | $(BUI
 
 $(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/dobby/dobby.h shared/dobby/libdobby.a | $(BUILD)
 	$(CC) $(FLAGS) -framework CoreText -o $@ $< shared/dobby/libdobby.a -lc++
+
+$(BUILD)/libapptoggle.dylib: app_toggle/AppToggle.m shared/Tweak.h | $(BUILD)
+	$(CC) $(FLAGS) -o $@ $<
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
 define TWEAK_RULES

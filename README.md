@@ -62,6 +62,19 @@ and Open/Save panels. Text that was already bold stays bold, and fonts an app pi
 - The Finder sidebar stays regular: BackToCatalina keeps it so.
 - Hooks CoreText with [Dobby](https://github.com/jmpews/Dobby) (Apache-2.0), in `shared/dobby/`.
 
+## apptoggle
+
+`libapptoggle.dylib`, loaded in every app: an app's Dock icon works as a show/hide switch, and
+selecting an app always shows its windows.
+
+- Click the Dock icon of the app in front: it hides. Click it again: it comes back.
+- If all of an app's windows are minimized, clicking its Dock icon or switching to it (⌘Tab,
+  Spotlight...) restores them all, instead of showing the app with no window.
+- If only some windows are minimized, they stay minimized. An app with no window opens one as
+  usual.
+- Turn it off with `defaults write -g TweaksAppToggle -bool NO` (`YES` to turn it back on),
+  then relaunch the apps.
+
 ## Requirements
 
 - Apple Silicon Mac, SIP disabled, [Ammonia](https://github.com/CoreBedtime/ammonia) installed
@@ -76,7 +89,8 @@ make install
 ```
 
 Or one tweak at a time: `make install-finderup`, `make install-docklower`,
-`make install-itermtweaks`, `make install-notestweaks`, `make install-boldtext`.
+`make install-itermtweaks`, `make install-notestweaks`, `make install-boldtext`,
+`make install-apptoggle`.
 
 For docklower, also copy `dock_lower/docklower.lua` to `~/.hammerspoon/` and add
 `require("docklower")` to your `~/.hammerspoon/init.lua`.
