@@ -25,9 +25,10 @@ Consequences:
   interceptor; ours don't use it.
 - Skipped processes log "Process … is not whitelisted for <dylib>." (info level).
 
-BackToCatalina (libBackToCatalina, blacklist; libBackToCatalinaDock, whitelist) is installed
-through Ammonia too. It restyles AppKit controls, so measure our UI against its rendering,
-not stock macOS.
+BackToCatalina (github.com/nfzerox/BackToCatalina) brings back the look of macOS Catalina.
+It is installed through Ammonia too (libBackToCatalina, blacklist; libBackToCatalinaDock,
+whitelist) and hooks C functions with Dobby, where our `shared/dobby/` comes from. It restyles
+AppKit controls, so measure our UI against its rendering, not stock macOS.
 
 A tweak takes effect when its target process starts: restart the app after installing.
 
@@ -37,11 +38,14 @@ A tweak takes effect when its target process starts: restart the app after insta
 - One folder per tweak, one `.m` per dylib, a `.whitelist` per dylib holding the end of the
   target's executable path (check it with `ps -axo comm | grep -F -- "<line>"`: one match).
   A tweak meant for every app (boldtext) uses `.app/Contents/MacOS/`, which matches all apps
-  and no daemon or XPC service.
+  and no daemon or XPC service. A broader line (a whole folder of extensions) is fine when
+  the constructor filters the processes it doesn't want.
 - Build `arm64` + `arm64e`, link only Foundation (AppKit is looked up at runtime with
-  `NSClassFromString`; `<AppKit/AppKit.h>` is imported for types only).
-- The constructor checks the bundle ID before doing anything (see Ammonia above); a tweak
-  meant for every app checks that it is an AppKit app (`NSApplication` exists).
+  `NSClassFromString`; `<AppKit/AppKit.h>` is imported for types only): the dylib must not pull
+  AppKit into a process it loads in. A lower framework every target already loads may be
+  linked (boldtext links CoreText).
+- The constructor checks the bundle ID before doing anything (see Ammonia above). A tweak
+  meant for every app filters by kind of process instead (see the header of its `.m`).
 - Hook with `TWHook(cls, sel, block, &orig)` from `shared/Tweak.h` (header only, compiled into
   each dylib, so tweaks stay independent). It adds the method on `cls` when it is inherited,
   so a superclass is never changed. For a class method, pass `object_getClass(cls)`.
@@ -50,6 +54,10 @@ A tweak takes effect when its target process starts: restart the app after insta
   `TWOnLaunch(install)`, which retries at NSApplicationWillFinishLaunching; `install` must
   then guard itself with a `done` flag.
 - A dylib that includes `shared/Tweak.h` lists it among its Makefile prerequisites.
+- C functions (CoreText...) are hooked with Dobby: `shared/dobby/` (`libdobby.a`, `dobby.h`,
+  copied from BackToCatalina; `rebuild-dobby.sh` rebuilds it from a pinned revision, needs
+  cmake and ninja). Link `shared/dobby/libdobby.a -lc++`; resolve the function with `dlsym`,
+  strip its pointer signature (`ptrauth_strip`), then `DobbyHook`.
 - Log with `NSLog(@"[TweakName] ...")`.
 - At the top of each file, a "Findings from lldb" comment records the classes, selectors and
   measurements the hook relies on, so it can be re-checked after a macOS update.
@@ -60,8 +68,9 @@ A tweak takes effect when its target process starts: restart the app after insta
   (an argument passed to the original) rather than altering its result, and check the result
   against the stock one. Example: a semibold system font derived from its descriptor is named
   `.SFNS-Semibold`, which `+fontWithName:` cannot find, while the stock `.AppleSystemUIFont`
-  is found; iTerm2 rebuilds its title font by name and crashed on the nil. Asking the original
-  `+systemFontOfSize:weight:` gives `.AppleSystemUIFontDemi`, found by name like the stock one.
+  is found (and apps rebuild fonts by name, e.g. iTerm2's window title). AppKit makes its own
+  semibold from `{CTFontDemiUsage, .AppleSystemUIFontDemi}`, found by name: boldtext asks for
+  exactly that.
 
 ## Tweaks
 
@@ -73,8 +82,9 @@ What each tweak does is in the README; how it does it, in the header of its `.m`
 - `iterm_tweaks/` — `libitermtweaks.dylib` (iTerm2): short context menu, full-height tabs.
 - `notes_tweaks/` — `libnotestweaks.dylib` (Notes): black body text, bordered Markup button,
   Always Bold toolbar toggle.
-- `bold_text/` — `libboldtext.dylib` (every app, MenuBarAgent, Open/Save panel service):
-  semibold system fonts; off with `defaults write -g TweaksBoldText -bool NO`.
+- `bold_text/` — `libboldtext.dylib` (every app, Dock, MenuBarAgent, Spotlight = Siri AI.app,
+  System Settings panes, Open/Save panel service): semibold system fonts through three CoreText
+  hooks (Dobby); off with `defaults write -g TweaksBoldText -bool NO`.
 
 ## Build and install
 
@@ -88,9 +98,9 @@ make uninstall-<tweak>    # remove one
 make clean
 ```
 
-Each tweak restarts only its own process (Finder, Dock, MenuBarAgent) or prints a reminder to
-restart the app (iTerm2, Notes, every app for boldtext). `sudo` needs the user's password:
-ask them to run `! make install-<tweak>`.
+Each tweak restarts only its own processes (Finder, Dock, MenuBarAgent, Siri AI) or prints a
+reminder to restart the app (iTerm2, Notes, every app for boldtext). `sudo` needs the user's
+password: ask them to run `! make install-<tweak>`.
 A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELISTS` and
 `<tweak>_RESTART` variables, its build rule, and its name in `TWEAKS`; then a README section.
 
@@ -112,6 +122,12 @@ Pitfalls when reloading a tweak:
 
 ## Inspecting an app with lldb
 
+- To learn what a framework calls (which CoreText function makes a font...), trace a small
+  test program that does the same thing, not the user's app: an attach pauses the app.
+  `lldb --batch -s script.lldb ./test` with `breakpoint set -n <function>` and
+  `breakpoint command add` (`bt 4`, `po (id)$x0`, `continue`).
+- To check a tweak before installing it, load the build into such a test program:
+  `DYLD_INSERT_LIBRARIES=build/<lib>.dylib ./test`, and compare with the output without it.
 - `lldb -p $(pgrep -x App) --batch -s script.lldb`, with `expr -l objc -O -- ...` lines.
 - `expr -l objc -- @import Foundation` (and `ObjectiveC`) first, for runtime calls and blocks.
 - View tree: `[[[window contentView] superview] _subtreeDescription]`.
