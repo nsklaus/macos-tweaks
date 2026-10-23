@@ -34,7 +34,7 @@ notestweaks_RESTART    := echo "Restart Notes for libnotestweaks."
 
 boldtext_DYLIBS        := $(BUILD)/libboldtext.dylib
 boldtext_WHITELISTS    := bold_text/libboldtext.dylib.whitelist
-boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; killall Dock "Siri AI" || true; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
+boldtext_RESTART       := launchctl kickstart -k gui/$$(id -u)/com.apple.MenuBarAgent; killall Dock "Siri AI" ControlCenter || true; echo "Relaunch apps (or log out and in) for libboldtext. Open/Save panels: close them, then killall -9 com.apple.appkit.xpc.openAndSavePanelService."
 
 apptoggle_DYLIBS       := $(BUILD)/libapptoggle.dylib
 apptoggle_WHITELISTS   := app_toggle/libapptoggle.dylib.whitelist

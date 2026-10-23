@@ -102,9 +102,9 @@ make uninstall-<tweak>    # remove one
 make clean
 ```
 
-Each tweak restarts only its own processes (Finder, Dock, MenuBarAgent, Siri AI) or prints a
-reminder to restart the app (iTerm2, Notes, every app for boldtext and apptoggle). `sudo`
-needs the user's password: ask them to run `! make install-<tweak>`.
+Each tweak restarts only its own processes (Finder, Dock, MenuBarAgent, Siri AI,
+ControlCenter) or prints a reminder to restart the app (iTerm2, Notes, every app for boldtext
+and apptoggle). `sudo` needs the user's password: ask them to run `! make install-<tweak>`.
 A new tweak is added in the Makefile with its `<tweak>_DYLIBS`, `<tweak>_WHITELISTS` and
 `<tweak>_RESTART` variables, its build rule, and its name in `TWEAKS`; then a README section.
 
