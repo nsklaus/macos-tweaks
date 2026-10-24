@@ -7,8 +7,9 @@
 //
 // Install: /var/ammonia/core/tweaks/libboldtext.dylib, whitelist ".app/Contents/MacOS/" (every
 // app, no daemon), "com.apple.appkit.xpc.openAndSavePanelService" (Open/Save panels of sandboxed
-// apps) and "/System/Library/ExtensionKit/Extensions/" (System Settings panes; the other
-// extensions there are skipped by the constructor).
+// apps), "/System/Library/ExtensionKit/Extensions/" (System Settings panes; the other
+// extensions there are skipped by the constructor) and "DockHelper.xpc/Contents/MacOS/DockHelper"
+// (the Dock's menus).
 
 #import <Foundation/Foundation.h>
 #import <CoreText/CoreText.h>
@@ -43,6 +44,8 @@
 //     each, with EXAppExtensionAttributes.EXExtensionPointIdentifier =
 //     com.apple.Settings.extension.ui (most other extensions there have no UI)
 //   the Dock doesn't link AppKit (SwiftUICore, QuartzCore, CoreText): no NSApplication check
+//   a Dock icon's right-click menu is drawn by DockHelper (an AppKit XPC service inside
+//     Dock.app, menu window layer 101), not by the Dock; tooltips are drawn by the Dock
 //   Spotlight (⌘Space) is drawn by /System/Applications/Siri AI.app (com.apple.campo)
 //   BackToCatalina keeps the Finder sidebar regular (hooks _NSConvertFontToWeightIfNeeded)
 //   C functions are hooked with Dobby (shared/dobby, as BackToCatalina): ObjC swizzling can't
