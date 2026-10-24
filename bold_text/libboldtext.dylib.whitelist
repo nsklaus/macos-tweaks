@@ -1,3 +1,4 @@
 .app/Contents/MacOS/
 com.apple.appkit.xpc.openAndSavePanelService
 /System/Library/ExtensionKit/Extensions/
+DockHelper.xpc/Contents/MacOS/DockHelper
