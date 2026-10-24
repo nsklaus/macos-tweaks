@@ -1,7 +1,8 @@
 # macos-tweaks
 
-Small Ammonia tweaks that bring back behaviours macOS is missing.
-best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina) for the good old macos look. this runs on macos 27
+Small Ammonia tweaks for macOS.
+best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina)  
+this runs on macos 27
 
 ## Tweaks
 
@@ -12,9 +13,9 @@ best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina) for t
   "Always Bold" toolbar button.
 - [boldtext](bold_text/): bold text everywhere, like iOS's Bold Text option.
 - [apptoggle](app_toggle/): click an app's Dock icon to show or hide it; selecting an app
-  restores its minimized windows.
+  restores its minimized windows if there's none visible.
 
-Each folder's README gives the details.
+Check each tweak folder READMEs for details.
 
 ## Requirements
 
