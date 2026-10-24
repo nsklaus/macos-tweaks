@@ -63,8 +63,8 @@ $(BUILD)/libnotestweaks.dylib: notes_tweaks/NotesTweaks.m shared/Tweak.h | $(BUI
 $(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/dobby/dobby.h shared/dobby/libdobby.a | $(BUILD)
 	$(CC) $(FLAGS) -framework CoreText -o $@ $< shared/dobby/libdobby.a -lc++
 
-$(BUILD)/libapptoggle.dylib: app_toggle/AppToggle.m shared/Tweak.h | $(BUILD)
-	$(CC) $(FLAGS) -o $@ $<
+$(BUILD)/libapptoggle.dylib: app_toggle/AppToggle.m | $(BUILD)
+	$(CC) $(FLAGS) -framework CoreServices -o $@ $<
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
 define TWEAK_RULES
