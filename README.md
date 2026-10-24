@@ -3,79 +3,18 @@
 Small Ammonia tweaks that bring back behaviours macOS is missing.
 best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina) for the good old macos look. this runs on macos 27
 
-## finderup
+## Tweaks
 
-Separate buttons for : Back, Forward and Up (Enclosing Folder), in two places:
+- [finderup](finder_up/): Back, Forward and Up buttons in the Finder toolbar and in Open/Save panels.
+- [docklower](dock_lower/): middle-click a window's title bar to send it to the back, like on Linux.
+- [itermtweaks](iterm_tweaks/): in iTerm2, a short context menu and tabs that fill the tab bar.
+- [notestweaks](notes_tweaks/): in Notes, black body text, a bordered Markup button and an
+  "Always Bold" toolbar button.
+- [boldtext](bold_text/): bold text everywhere, like iOS's Bold Text option.
+- [apptoggle](app_toggle/): click an app's Dock icon to show or hide it; selecting an app
+  restores its minimized windows.
 
-- **Finder toolbar** (`libfinderup.dylib`): three buttons offered in View > Customize Toolbar.
-- **Open/Save panels** (`libpanelnav.dylib`): replacing the Back/Forward combo button.
-
-![Finder toolbar](screenshots/finder_up.png)
-
-![Open/Save panel](screenshots/panel_up.png)
-
-## docklower
-
-A real "lower window", like on Linux: middle-click a window's title bar to send it to the
-back of the window stack, without activating any other window.
-
-- `libdocklower.dylib` runs inside the Dock, the only process allowed to reorder other apps' windows.
-- `docklower.lua` (Hammerspoon) catches the middle-click and asks the Dock to lower the window.
-  Brave browser tab strip is left alone, so middle-click still closes tabs.
-
-## itermtweaks
-
-`libitermtweaks.dylib`, loaded in iTerm2 only:
-
-- **Short context menu**: right-click in the terminal keeps only Copy, Paste, Select All and
-  Clear Buffer (plus Copy Link Address / Copy URL on links). Image, mark and timestamp menus are
-  left alone.
-- **Sequoia-style tabs fill the tab bar**: with "Use Sequoia-style tabs" on macOS 26+, iTerm2
-  3.7.5 keeps the padding meant for its Tahoe tabs, leaving an empty strip under the tabs.
-
-## notestweaks
-
-`libnotestweaks.dylib`, loaded in Notes only:
-
-- **Black body text**: the note editor draws plain text in the system text color, opaque black
-  in Light mode and opaque white in Dark mode, like TextEdit, instead of Notes' own grey.
-  Text you colored yourself, links, the note list and its greyed previews are left alone.
-  Nothing is saved into your notes: the color is only applied on screen.
-- **Bordered Markup button**: the toolbar's Markup button is drawn as a button like the others,
-  in the main window and in note windows, instead of a bare symbol (Notes leaves it unbordered,
-  which shows with BackToCatalina).
-- **Always Bold**: a toolbar button, offered in View > Customize Toolbar. While it is on,
-  everything you type is bold, in every note, even after Return, until you turn it off. The bold
-  is real formatting, saved in the note (so it shows on iPhone and iPad too). The setting is kept
-  when Notes restarts, even if you remove the button from the toolbar. Bolding or unbolding a
-  selection still works as usual.
-
-## boldtext
-
-`libboldtext.dylib`: bold text everywhere, like iOS's Bold Text option. The system font turns
-semibold in every app (AppKit and SwiftUI), the menu bar, the Dock, Spotlight, System Settings
-and Open/Save panels. Text that was already bold stays bold, and fonts an app picks by name
-(documents, the terminal's font, symbol fonts) are left alone.
-
-- Turn it off with `defaults write -g TweaksBoldText -bool NO` (`YES` to turn it back on),
-  then relaunch the apps.
-- The Finder sidebar stays regular: BackToCatalina keeps it so.
-- Hooks CoreText with [Dobby](https://github.com/jmpews/Dobby) (Apache-2.0), in `shared/dobby/`.
-
-## apptoggle
-
-`libapptoggle.dylib`, loaded in every app: an app's Dock icon works as a show/hide switch, and
-selecting an app always shows its windows.
-
-- Click the Dock icon of the app in front: it hides. Click it again: it comes back.
-- If all of an app's windows are minimized, clicking its Dock icon or switching to it (⌘Tab,
-  Spotlight...) restores them all, instead of showing the app with no window.
-  An app macOS brings forward on its own, because the one in front was hidden or quit, keeps
-  them minimized.
-- If only some windows are minimized, they stay minimized. An app with no window opens one as
-  usual.
-- Turn it off with `defaults write -g TweaksAppToggle -bool NO` (`YES` to turn it back on),
-  then relaunch the apps.
+Each folder's README gives the details.
 
 ## Requirements
 
@@ -90,11 +29,10 @@ selecting an app always shows its windows.
 make install
 ```
 
-Or one tweak at a time: `make install-finderup`, `make install-docklower`,
-`make install-itermtweaks`, `make install-notestweaks`, `make install-boldtext`,
-`make install-apptoggle`.
+Or one tweak at a time: `make install-<tweak>` (`finderup`, `docklower`, `itermtweaks`,
+`notestweaks`, `boldtext`, `apptoggle`). Uninstall with `make uninstall`, or
+`make uninstall-<tweak>`.
 
-For docklower, also copy `dock_lower/docklower.lua` to `~/.hammerspoon/` and add
-`require("docklower")` to your `~/.hammerspoon/init.lua`.
+## Credits
 
-Uninstall with `make uninstall`, or `make uninstall-<tweak>` for one tweak.
+C functions are hooked with [Dobby](https://github.com/jmpews/Dobby) (Apache-2.0), in `shared/dobby/`.
