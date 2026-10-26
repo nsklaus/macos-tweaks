@@ -15,4 +15,6 @@
   when Notes restarts, even if you remove the button from the toolbar. Bolding or unbolding a
   selection still works as usual.
 
+![Notes](screenshots/notes.png)
+
 Install: `make install-notestweaks`, then relaunch Notes.
