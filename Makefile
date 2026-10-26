@@ -6,14 +6,14 @@
 #   make uninstall           remove every tweak
 #   make uninstall-<tweak>   remove one tweak
 #   make clean               remove build/
-# Tweaks: finderup docklower itermtweaks notestweaks boldtext apptoggle
+# Tweaks: finderup docklower itermtweaks notestweaks boldtext apptoggle claudetitlebar
 
 CC         := clang
 FLAGS      := -arch arm64 -arch arm64e -dynamiclib -fobjc-arc -O2 -Wall -framework Foundation
 TWEAKS_DIR := /var/ammonia/core/tweaks
 BUILD      := build
 
-TWEAKS     := finderup docklower itermtweaks notestweaks boldtext apptoggle
+TWEAKS     := finderup docklower itermtweaks notestweaks boldtext apptoggle claudetitlebar
 
 # Per tweak: its dylibs, their whitelists, and what to run after (un)installing it.
 finderup_DYLIBS        := $(BUILD)/libfinderup.dylib $(BUILD)/libpanelnav.dylib
@@ -40,6 +40,10 @@ apptoggle_DYLIBS       := $(BUILD)/libapptoggle.dylib
 apptoggle_WHITELISTS   := app_toggle/libapptoggle.dylib.whitelist
 apptoggle_RESTART      := echo "Relaunch apps (or log out and in) for libapptoggle."
 
+claudetitlebar_DYLIBS      := $(BUILD)/libclaudetitlebar.dylib
+claudetitlebar_WHITELISTS  := claude_titlebar/libclaudetitlebar.dylib.whitelist
+claudetitlebar_RESTART     := echo "Quit and reopen Claude for libclaudetitlebar."
+
 all: $(TWEAKS)
 
 $(BUILD):
@@ -65,6 +69,9 @@ $(BUILD)/libboldtext.dylib: bold_text/BoldText.m shared/dobby/dobby.h shared/dob
 
 $(BUILD)/libapptoggle.dylib: app_toggle/AppToggle.m | $(BUILD)
 	$(CC) $(FLAGS) -framework CoreServices -o $@ $<
+
+$(BUILD)/libclaudetitlebar.dylib: claude_titlebar/ClaudeTitlebar.m shared/Tweak.h | $(BUILD)
+	$(CC) $(FLAGS) -o $@ $<
 
 # <tweak>, install-<tweak> and uninstall-<tweak>, for every tweak in TWEAKS.
 define TWEAK_RULES

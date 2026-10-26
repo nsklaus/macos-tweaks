@@ -14,6 +14,8 @@ this runs on macos 27.
 - [boldtext](bold_text/): bold text everywhere, like iOS's Bold Text option.
 - [apptoggle](app_toggle/): click an app's Dock icon to show or hide it; selecting an app
   restores its minimized windows if there's none visible.
+- [claudetitlebar](claude_titlebar/): a real title bar for Claude desktop's windows, with the app
+  below it.
 
 Check each tweak folder READMEs for details.
 
