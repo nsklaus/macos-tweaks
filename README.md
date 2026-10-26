@@ -1,8 +1,8 @@
 # macos-tweaks
 
 Small Ammonia tweaks for macOS.
-best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina)  
-this runs on macos 27
+best used with [BackToCatalina](https://github.com/nfzerox/BackToCatalina).  
+this runs on macos 27.
 
 ## Tweaks
 

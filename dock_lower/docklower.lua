@@ -43,22 +43,24 @@ local function contains(f, pos)
   return f and pos.x >= f.x and pos.x <= f.x + f.w and pos.y >= f.y and pos.y <= f.y + f.h
 end
 
--- true if the cursor is in Brave's tab strip:
--- this container is narrower than the bar (it excludes the left and right buttons)
+local function sameFrame(a, b)
+  return a and b and a.x == b.x and a.y == b.y and a.w == b.w and a.h == b.h
+end
+
+-- true if the cursor is on one of Brave's tabs or buttons.
+-- Brave's tab strip only exposes anonymous AXGroups: the tabs sit in a group wrapped by
+-- another group with the same frame, the empty strip after them does not.
+-- Only AXRole, AXFrame and AXParent are read: AXChildren on the tab strip can block for seconds.
 local function onControl(pos, winFrame)
   local el = hs.axuielement.systemElementAtPosition(pos.x, pos.y)
   if not el then return false end
   local role = el:attributeValue("AXRole")
   if role == "AXRadioButton" or role == "AXButton" then return true end
   local ef = el:attributeValue("AXFrame")
-  if not ef or ef.w >= winFrame.w - 120 then return false end
-  -- tab strip: if Brave lists its children, check that we are on one of them
-  local kids = el:attributeValue("AXChildren") or {}
-  if #kids == 0 then return true end
-  for _, k in ipairs(kids) do
-    if contains(k:attributeValue("AXFrame"), pos) then return true end
-  end
-  return false
+  -- the groups spanning the whole window are wrapped the same way: not a tab
+  if not ef or ef.w >= winFrame.w then return false end
+  local parent = el:attributeValue("AXParent")
+  return sameFrame(ef, parent and parent:attributeValue("AXFrame")) or false
 end
 
 local function titlebarWindow(pos)
