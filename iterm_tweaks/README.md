@@ -8,6 +8,8 @@
 - **Sequoia-style tabs fill the tab bar**: with "Use Sequoia-style tabs" on macOS 26+, iTerm2
   3.7.5 keeps the padding meant for its Tahoe tabs, leaving an empty strip under the tabs.
 
+Install: `make install-itermtweaks`, then relaunch iTerm2.
+
 ![iTerm2](screenshots/iterm2.png)
 
-Install: `make install-itermtweaks`, then relaunch iTerm2.
+
